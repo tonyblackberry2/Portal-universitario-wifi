@@ -17,9 +17,11 @@ async function saveLogs() {
 }
 
 function switchTab(tab, element) {
+    // Remover a classe "active" das abas
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     element.classList.add('active');
 
+    // Remover a classe "active" dos formulários
     document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
     document.getElementById(tab + 'Form').classList.add('active');
 }
@@ -47,11 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const secretQuestion = document.getElementById('register-secret-question').value;
         const secretAnswer = document.getElementById('register-secret-answer').value;
 
+        // Verifica se as senhas coincidem
         if (password !== confirm) {
             alert('As senhas não coincidem!');
             return;
         }
 
+        // Verifica se a data de nascimento é válida
         if (!isValidBirthdate(birthdate)) {
             alert('Data de nascimento inválida!');
             return;
