@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Portal de Acesso Wi-Fi Universitário</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Atualização no FontAwesome para evitar erro de CORS -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -14,6 +15,7 @@
             <p>Acesso seguro à rede</p>
         </div>
 
+        <!-- Navegação entre as abas -->
         <div class="tabs">
             <div class="tab active" onclick="switchTab('login', this)">Login</div>
             <div class="tab" onclick="switchTab('register', this)">Cadastro</div>
@@ -21,6 +23,7 @@
             <div class="tab" onclick="switchTab('admin', this)">Admin</div>
         </div>
         
+        <!-- Formulário de Login -->
         <div id="loginForm" class="form-container active">
             <form id="loginFormElement">
                 <div class="form-group">
@@ -38,6 +41,7 @@
             </form>
         </div>
 
+        <!-- Formulário de Cadastro -->
         <div id="registerForm" class="form-container">
             <form id="registerFormElement">
                 <div class="form-group">
@@ -79,6 +83,7 @@
             </form>
         </div>
 
+        <!-- Formulário de Face ID -->
         <div id="faceIdForm" class="form-container">
             <div class="face-id-container">
                 <button class="face-id-button" onclick="startFaceID()">
@@ -90,6 +95,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Formulário de Esqueci a Senha -->
         <div class="form-container" id="forgotPasswordForm">
             <form id="forgotPasswordFormElement">
                 <div class="form-group">
@@ -119,6 +126,8 @@
                 <button type="submit" class="btn">Recuperar Senha</button>
             </form>
         </div>
+
+        <!-- Formulário de Login Admin -->
         <div id="adminForm" class="form-container">
             <form id="adminLoginForm">
                 <div class="form-group">
@@ -136,11 +145,15 @@
                 <ul id="activityLog" style="font-size: 0.9rem; color: #333;"></ul>
             </div>
         </div>
+
+        <!-- Links de ajuda -->
         <div class="help-links">
             <a href="#" onclick="switchTab('forgotPassword', this)">Esqueceu a senha?</a> | 
             <a href="#">Suporte técnico</a>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <!-- Script que manipula as abas -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
