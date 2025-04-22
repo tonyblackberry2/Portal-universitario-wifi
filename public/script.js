@@ -57,6 +57,33 @@ let loginLogs = [];
 
 // Variáveis globais para o reconhecimento facial
 let isFaceDetectionRunning = false;
+let modelsLoaded = false;
+
+// Função para carregar os modelos do face-api
+async function loadModels() {
+    try {
+        console.log('Iniciando carregamento dos modelos...');
+        
+        // Carregar cada modelo individualmente para melhor tratamento de erros
+        await faceapi.nets.ssdMobilenetv1.loadFromUri('/models/ssd_mobilenetv1');
+        console.log('Modelo ssdMobilenetv1 carregado');
+        
+        await faceapi.nets.faceLandmark68Net.loadFromUri('/models/face_landmark_68');
+        console.log('Modelo faceLandmark68Net carregado');
+        
+        await faceapi.nets.faceRecognitionNet.loadFromUri('/models/face_recognition');
+        console.log('Modelo faceRecognitionNet carregado');
+        
+        await faceapi.nets.faceExpressionNet.loadFromUri('/models/face_expression');
+        console.log('Modelo faceExpressionNet carregado');
+        
+        modelsLoaded = true;
+        console.log('Todos os modelos do face-api foram carregados com sucesso');
+    } catch (error) {
+        console.error('Erro ao carregar modelos do face-api:', error);
+        throw error;
+    }
+}
 
 // Função para carregar usuários
 async function loadUsers() {
@@ -97,13 +124,11 @@ async function startFaceID() {
             throw new Error('Face API não está carregado. Aguarde um momento e tente novamente.');
         }
 
-        // Carregar modelos
-        faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
-        await Promise.all([
-            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-        ]);
+        // Carregar modelos se ainda não estiverem carregados
+        if (!modelsLoaded) {
+            faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
+            await loadModels();
+        }
         
         // Solicitar acesso à câmera
         faceIdStatus.textContent = 'Iniciando câmera...';
@@ -118,6 +143,15 @@ async function startFaceID() {
         // Mostrar o vídeo
         videoElement.srcObject = stream;
         cameraContainer.style.display = 'block';
+        
+        // Aguardar o vídeo estar pronto
+        await new Promise((resolve) => {
+            videoElement.onloadedmetadata = () => {
+                videoElement.play();
+                resolve();
+            };
+        });
+        
         faceIdStatus.textContent = 'Posicione seu rosto na frente da câmera e clique em "Verificar Rosto"';
         
         // Adicionar botão de verificação
@@ -216,8 +250,11 @@ faceapiScript.onload = initializeFaceAPI;
 // Inicializar quando o documento estiver carregado
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        console.log('Iniciando carregamento da aplicação...');
+        
         // Aguardar o carregamento do face-api
         if (typeof faceapi === 'undefined') {
+            console.log('Aguardando carregamento do face-api...');
             await new Promise(resolve => {
                 const checkFaceAPI = setInterval(() => {
                     if (typeof faceapi !== 'undefined') {
@@ -226,11 +263,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }, 100);
             });
+            console.log('Face-api carregado com sucesso');
         }
 
+        // Carregar modelos do face-api
+        console.log('Iniciando carregamento dos modelos...');
+        await loadModels();
+
         // Carregar usuários
+        console.log('Carregando usuários...');
         await loadUsers();
-        console.log('Usuários carregados com sucesso');
+        
+        console.log('Inicialização concluída com sucesso');
     } catch (error) {
         console.error('Erro ao inicializar:', error);
     }
