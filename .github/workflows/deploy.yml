@@ -1,21 +1,37 @@
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v2
+name: Firebase Deploy
 
-  - name: Set up Node.js
-    uses: actions/setup-node@v2
-    with:
-      node-version: '14'  # ou a versão que você está usando
+on:
+  push:
+    branches:
+      - main  # Ou o nome do branch que você está usando
 
-  - name: Install dependencies
-    run: npm install
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-  - name: Install Firebase CLI
-    run: npm install -g firebase-tools
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-  - name: Authenticate with Firebase
-    run: firebase login:ci --token ${{ secrets.FIREBASE_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'  # Ou a versão do Node.js que você está usando
 
-  - name: Deploy to Firebase
-    run: firebase deploy --token ${{ secrets.FIREBASE_TOKEN }}
+      - name: Install dependencies
+        run: |
+          npm install
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Firebase login:ci
+        env:
+          FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
+        run: firebase login:ci --token $FIREBASE_AUTH_TOKEN
+
+      - name: Use Firebase project
+        run: firebase use --project portal-universitario-wifi
+
+      - name: Deploy to Firebase
+        run: firebase deploy --only hosting --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
