@@ -1,56 +1,55 @@
-// Importar funções do Firebase
-import { auth, db, getDocs, collection, addDoc } from './firebase.js';
-
-// Carregar a biblioteca face-api.js
-const faceapiScript = document.createElement('script');
-faceapiScript.src = 'https://cdn.jsdelivr.net/npm/face-api.js';
-document.head.appendChild(faceapiScript);
-
 // Função para alternar entre as abas
 function switchTab(tab, element) {
-    // Verificar se o elemento existe
-    if (!element) {
-        console.error('Elemento da aba não fornecido');
-        return;
+    // Remover a classe "active" das abas
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+
+    // Remover a classe "active" dos formulários
+    document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+    
+    // Caso especial para a aba "faceid"
+    let formId = tab + 'Form';
+    if (tab === 'faceid') {
+        formId = 'faceIdForm';
     }
     
-    try {
-        // Remover a classe "active" das abas
-        const tabs = document.querySelectorAll('.tab');
-        if (tabs && tabs.length > 0) {
-            tabs.forEach(t => t.classList.remove('active'));
-            element.classList.add('active');
-        }
-
-        // Remover a classe "active" dos formulários
-        const forms = document.querySelectorAll('.form-container');
-        if (forms && forms.length > 0) {
-            forms.forEach(f => f.classList.remove('active'));
-        }
-        
-        // Casos especiais para IDs de formulários
-        let formId = tab + 'Form';
-        if (tab === 'faceid') {
-            formId = 'faceIdForm';
-        } else if (tab === 'forgotPassword') {
-            formId = 'forgotPasswordForm';
-        }
-        
-        const formElement = document.getElementById(formId);
-        if (formElement) {
-            formElement.classList.add('active');
-        } else {
-            console.error(`Formulário com ID "${formId}" não encontrado.`);
-        }
-    } catch (error) {
-        console.error('Erro ao alternar abas:', error);
+    const formElement = document.getElementById(formId);
+    if (formElement) {
+        formElement.classList.add('active');
+    } else {
+        console.error(`Formulário com ID "${formId}" não encontrado.`);
     }
 }
 
 // Expor a função switchTab globalmente
 window.switchTab = switchTab;
 
-// Variáveis globais
+// Importações do Firebase usando CDN oficial
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword 
+} from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+import { 
+    getFirestore,
+    collection, 
+    addDoc,
+    getDocs,
+    query,
+    where 
+} from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+
+// Configuração do Firebase
+const firebaseConfig = {
+    // Adicione sua configuração aqui
+};
+
+// Inicialização do Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 let users = [];
 let currentUser = null;
 let loginLogs = [];
@@ -58,20 +57,9 @@ let loginLogs = [];
 // Variáveis globais para o reconhecimento facial
 let isFaceDetectionRunning = false;
 
-// Função para carregar usuários
 async function loadUsers() {
-    try {
-        const usersRef = collection(db, 'users');
-        const snapshot = await getDocs(usersRef);
-        users = [];
-        snapshot.forEach((doc) => {
-            users.push({ id: doc.id, ...doc.data() });
-        });
-        return users;
-    } catch (error) {
-        console.error('Erro ao carregar usuários:', error);
-        return [];
-    }
+    const querySnapshot = await getDocs(collection(db, "users"));
+    users = querySnapshot.docs.map(doc => doc.data());
 }
 
 async function saveLogs() {
@@ -87,22 +75,18 @@ async function startFaceID() {
     const faceIdStatus = document.getElementById('faceIdStatus');
     
     if (isFaceDetectionRunning) {
+        // Parar a detecção se já estiver rodando
         stopFaceDetection();
         return;
     }
     
     try {
-        // Verificar se o face-api está carregado
-        if (typeof faceapi === 'undefined') {
-            throw new Error('Face API não está carregado. Aguarde um momento e tente novamente.');
-        }
-
         // Carregar modelos
         faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
         await Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
             faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
         ]);
         
         // Solicitar acesso à câmera
@@ -198,29 +182,8 @@ function isValidBirthdate(birthdate) {
     return age <= 70 && new Date(birthdate) <= today;
 }
 
-// Função para inicializar o face-api
-async function initializeFaceAPI() {
-  try {
-    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-    await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-    await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-    console.log('Face API inicializado com sucesso');
-  } catch (error) {
-    console.error('Erro ao inicializar Face API:', error);
-  }
-}
-
-// Chamar a inicialização do face-api quando o script carregar
-faceapiScript.onload = initializeFaceAPI;
-
-// Inicializar quando o documento estiver carregado
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        await loadUsers();
-        console.log('Usuários carregados com sucesso');
-    } catch (error) {
-        console.error('Erro ao carregar usuários:', error);
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    loadUsers();
 
     // Cadastro
     document.getElementById('registerFormElement')?.addEventListener('submit', async (e) => {
