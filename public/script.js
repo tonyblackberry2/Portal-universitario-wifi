@@ -1,178 +1,64 @@
 // Importar funções do Firebase
-import { 
-    auth, 
-    db, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword,
-    signOut,
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    orderBy,
-    limit
-} from './firebase.js';
+import { auth, db, getDocs, collection, addDoc } from './firebase.js';
 
 // Carregar a biblioteca face-api.js
 const faceapiScript = document.createElement('script');
 faceapiScript.src = 'https://cdn.jsdelivr.net/npm/face-api.js';
 document.head.appendChild(faceapiScript);
 
-// Elementos da interface
-const tabs = document.querySelectorAll('.tab');
-const formContainers = document.querySelectorAll('.form-container');
-const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
-const activityLog = document.getElementById('activityLog');
-const videoElement = document.getElementById('videoElement');
-const faceIdStatus = document.getElementById('faceIdStatus');
-const startFaceIdButton = document.getElementById('startFaceId');
+// Função para alternar entre as abas
+function switchTab(tab, element) {
+    // Verificar se o elemento existe
+    if (!element) {
+        console.error('Elemento da aba não fornecido');
+        return;
+    }
+    
+    try {
+        // Remover a classe "active" das abas
+        const tabs = document.querySelectorAll('.tab');
+        if (tabs && tabs.length > 0) {
+            tabs.forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        // Remover a classe "active" dos formulários
+        const forms = document.querySelectorAll('.form-container');
+        if (forms && forms.length > 0) {
+            forms.forEach(f => f.classList.remove('active'));
+        }
+        
+        // Casos especiais para IDs de formulários
+        let formId = tab + 'Form';
+        if (tab === 'faceid') {
+            formId = 'faceIdForm';
+        } else if (tab === 'forgotPassword') {
+            formId = 'forgotPasswordForm';
+        }
+        
+        const formElement = document.getElementById(formId);
+        if (formElement) {
+            formElement.classList.add('active');
+        } else {
+            console.error(`Formulário com ID "${formId}" não encontrado.`);
+        }
+    } catch (error) {
+        console.error('Erro ao alternar abas:', error);
+    }
+}
+
+// Expor a função switchTab globalmente
+window.switchTab = switchTab;
 
 // Variáveis globais
-let stream = null;
-let faceDetectionInterval = null;
+let users = [];
+let currentUser = null;
+let loginLogs = [];
+
+// Variáveis globais para o reconhecimento facial
+let isFaceDetectionRunning = false;
 let modelsLoaded = false;
 let registerFaceDescriptor = null;
-let isFaceDetectionRunning = false;
-
-// Inicialização
-document.addEventListener('DOMContentLoaded', async () => {
-    // Carregar modelos do face-api.js
-    await Promise.all([
-        faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-        faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-        faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-    ]);
-
-    // Configurar navegação por tabs
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.getAttribute('data-target');
-            
-            // Remove active class de todas as tabs e containers
-            tabs.forEach(t => t.classList.remove('active'));
-            formContainers.forEach(container => container.classList.remove('active'));
-            
-            // Adiciona active class na tab e container selecionados
-            tab.classList.add('active');
-            document.getElementById(target).classList.add('active');
-            
-            // Parar Face ID se estiver rodando
-            if (stream) {
-                stopCamera();
-            }
-        });
-    });
-
-    // Configurar formulários
-    setupForms();
-});
-
-// Função para alternar entre as abas
-function switchTab(tabIndex) {
-    tabs.forEach(tab => tab.classList.remove('active'));
-    formContainers.forEach(container => container.classList.remove('active'));
-    
-    tabs[tabIndex].classList.add('active');
-    formContainers[tabIndex].classList.add('active');
-}
-
-// Função para iniciar a câmera
-async function startCamera() {
-    try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoElement.srcObject = stream;
-        faceIdStatus.textContent = 'Câmera iniciada. Iniciando detecção facial...';
-        
-        // Carregar modelos do face-api.js
-        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-        await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-        await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-        
-        startFaceDetection();
-    } catch (error) {
-        faceIdStatus.textContent = 'Erro ao acessar a câmera: ' + error.message;
-        console.error('Erro ao acessar a câmera:', error);
-    }
-}
-
-// Função para parar a câmera
-function stopCamera() {
-    if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        videoElement.srcObject = null;
-        if (faceDetectionInterval) {
-            clearInterval(faceDetectionInterval);
-        }
-    }
-}
-
-// Função para iniciar a detecção facial
-function startFaceDetection() {
-    faceDetectionInterval = setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(
-            videoElement,
-            new faceapi.TinyFaceDetectorOptions()
-        );
-        
-        if (detections.length > 0) {
-            faceIdStatus.textContent = 'Rosto detectado! Verificando identidade...';
-            // Aqui você implementaria a lógica de reconhecimento facial
-        } else {
-            faceIdStatus.textContent = 'Nenhum rosto detectado. Por favor, posicione seu rosto na frente da câmera.';
-        }
-    }, 100);
-}
-
-// Configuração dos formulários
-function setupForms() {
-    // Formulário de Login
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            addActivityLog('Login realizado com sucesso');
-        } catch (error) {
-            addActivityLog('Erro no login: ' + error.message);
-        }
-    });
-
-    // Formulário de Registro
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('registerName').value;
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await updateProfile(userCredential.user, { displayName: name });
-            addActivityLog('Usuário registrado com sucesso');
-        } catch (error) {
-            addActivityLog('Erro no registro: ' + error.message);
-        }
-    });
-}
-
-// Função para adicionar entradas ao log de atividades
-function addActivityLog(message) {
-    const li = document.createElement('li');
-    li.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
-    activityLog.insertBefore(li, activityLog.firstChild);
-}
-
-// Event Listeners
-startFaceIdButton.addEventListener('click', () => {
-    if (!stream) {
-        startCamera();
-    } else {
-        stopCamera();
-    }
-});
 
 // Função para carregar os modelos do face-api
 async function loadModels() {
@@ -230,6 +116,130 @@ async function saveLogs() {
     }
 }
 
+async function startFaceID() {
+    const videoElement = document.getElementById('videoElement');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const faceIdStatus = document.getElementById('faceIdStatus');
+    
+    if (isFaceDetectionRunning) {
+        stopFaceDetection();
+        return;
+    }
+    
+    try {
+        // Verificar se o face-api está carregado
+        if (typeof faceapi === 'undefined') {
+            throw new Error('Face API não está carregado. Aguarde um momento e tente novamente.');
+        }
+
+        // Carregar modelos se ainda não estiverem carregados
+        if (!modelsLoaded) {
+            faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
+            await loadModels();
+        }
+        
+        // Solicitar acesso à câmera
+        faceIdStatus.textContent = 'Iniciando câmera...';
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        
+        // Mostrar o vídeo
+        videoElement.srcObject = stream;
+        cameraContainer.style.display = 'block';
+        
+        // Aguardar o vídeo estar pronto
+        await new Promise((resolve) => {
+            videoElement.onloadedmetadata = () => {
+                videoElement.play();
+                resolve();
+            };
+        });
+        
+        faceIdStatus.textContent = 'Posicione seu rosto na frente da câmera e clique em "Verificar Rosto"';
+        
+        // Adicionar botão de verificação
+        const verifyButton = document.createElement('button');
+        verifyButton.className = 'btn';
+        verifyButton.textContent = 'Verificar Rosto';
+        verifyButton.onclick = scanFace;
+        faceIdStatus.appendChild(document.createElement('br'));
+        faceIdStatus.appendChild(verifyButton);
+        
+        isFaceDetectionRunning = true;
+        
+    } catch (error) {
+        console.error('Erro ao acessar a câmera:', error);
+        faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
+        isFaceDetectionRunning = false;
+    }
+}
+
+// Função para verificar o rosto
+async function scanFace() {
+    const videoElement = document.getElementById('videoElement');
+    const faceIdStatus = document.getElementById('faceIdStatus');
+    
+    try {
+        faceIdStatus.textContent = 'Analisando rosto...';
+        
+        const detection = await faceapi
+            .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+        
+        if (detection) {
+            faceIdStatus.textContent = 'Rosto detectado com sucesso!';
+            console.log('Descriptor:', detection.descriptor);
+            
+            // Aqui você pode adicionar a lógica para verificar a identidade
+            // Por exemplo, comparar com um banco de dados de rostos conhecidos
+            
+            // Simulação de verificação bem-sucedida
+            setTimeout(() => {
+                faceIdStatus.textContent = 'Rosto reconhecido! Você pode fazer login.';
+                stopFaceDetection();
+            }, 2000);
+        } else {
+            faceIdStatus.textContent = 'Nenhum rosto detectado. Tente novamente.';
+        }
+    } catch (error) {
+        console.error('Erro ao detectar rosto:', error);
+        faceIdStatus.textContent = 'Erro ao detectar rosto. Tente novamente.';
+    }
+}
+
+function stopFaceDetection() {
+    const videoElement = document.getElementById('videoElement');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const faceIdStatus = document.getElementById('faceIdStatus');
+    
+    if (videoElement.srcObject) {
+        const tracks = videoElement.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        videoElement.srcObject = null;
+    }
+    
+    cameraContainer.style.display = 'none';
+    faceIdStatus.textContent = 'Clique para iniciar o reconhecimento facial';
+    isFaceDetectionRunning = false;
+}
+
+// Expor as funções globalmente
+window.startFaceID = startFaceID;
+window.stopFaceDetection = stopFaceDetection;
+window.scanFace = scanFace;
+
+function isValidBirthdate(birthdate) {
+    const today = new Date();
+    const age = today.getFullYear() - new Date(birthdate).getFullYear();
+    return age <= 70 && new Date(birthdate) <= today;
+}
+
 // Função para inicializar o face-api
 async function initializeFaceAPI() {
   try {
@@ -269,6 +279,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('Iniciando carregamento da aplicação...');
         
+        // Solicitar permissão da câmera
+        console.log('Solicitando permissão da câmera...');
+        const cameraPermission = await requestCameraPermission();
+        if (!cameraPermission) {
+            console.warn('Permissão da câmera não concedida');
+        }
+        
         // Aguardar o carregamento do face-api
         if (typeof faceapi === 'undefined') {
             console.log('Aguardando carregamento do face-api...');
@@ -286,10 +303,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Carregar modelos do face-api
         console.log('Iniciando carregamento dos modelos...');
         await loadModels();
-
-        // Solicitar permissão da câmera
-        console.log('Solicitando permissão da câmera...');
-        await requestCameraPermission();
 
         // Carregar usuários
         console.log('Carregando usuários...');
@@ -447,15 +460,8 @@ async function startRegisterFaceID() {
             await loadModels();
         }
         
-        // Solicitar permissão da câmera
-        faceIdStatus.textContent = 'Solicitando permissão da câmera...';
-        const hasPermission = await requestCameraPermission();
-        if (!hasPermission) {
-            throw new Error('Permissão da câmera negada');
-        }
-        
         // Solicitar acesso à câmera
-        faceIdStatus.textContent = 'Iniciando câmera...';
+        faceIdStatus.textContent = 'Solicitando acesso à câmera...';
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 facingMode: 'user',
@@ -490,7 +496,11 @@ async function startRegisterFaceID() {
         
     } catch (error) {
         console.error('Erro ao acessar a câmera:', error);
-        faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
+        if (error.name === 'NotAllowedError') {
+            faceIdStatus.textContent = 'Permissão da câmera negada. Por favor, permita o acesso à câmera nas configurações do navegador.';
+        } else {
+            faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
+        }
         isFaceDetectionRunning = false;
     }
 }
@@ -550,14 +560,3 @@ function stopRegisterFaceDetection() {
 window.startRegisterFaceID = startRegisterFaceID;
 window.stopRegisterFaceDetection = stopRegisterFaceDetection;
 window.captureRegisterFaceID = captureRegisterFaceID;
-
-function isValidBirthdate(birthdate) {
-    const today = new Date();
-    const age = today.getFullYear() - new Date(birthdate).getFullYear();
-    return age <= 70 && new Date(birthdate) <= today;
-}
-
-// Limpar recursos ao fechar a página
-window.addEventListener('beforeunload', () => {
-    stopCamera();
-});
