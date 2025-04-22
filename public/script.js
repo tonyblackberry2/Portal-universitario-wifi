@@ -60,18 +60,18 @@ let isFaceDetectionRunning = false;
 
 // Função para carregar usuários
 async function loadUsers() {
-  try {
-    const usersRef = collection(db, 'users');
-    const snapshot = await getDocs(usersRef);
-    const users = [];
-    snapshot.forEach((doc) => {
-      users.push({ id: doc.id, ...doc.data() });
-    });
-    return users;
-  } catch (error) {
-    console.error('Erro ao carregar usuários:', error);
-    return [];
-  }
+    try {
+        const usersRef = collection(db, 'users');
+        const snapshot = await getDocs(usersRef);
+        users = [];
+        snapshot.forEach((doc) => {
+            users.push({ id: doc.id, ...doc.data() });
+        });
+        return users;
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        return [];
+    }
 }
 
 async function saveLogs() {
@@ -87,18 +87,22 @@ async function startFaceID() {
     const faceIdStatus = document.getElementById('faceIdStatus');
     
     if (isFaceDetectionRunning) {
-        // Parar a detecção se já estiver rodando
         stopFaceDetection();
         return;
     }
     
     try {
+        // Verificar se o face-api está carregado
+        if (typeof faceapi === 'undefined') {
+            throw new Error('Face API não está carregado. Aguarde um momento e tente novamente.');
+        }
+
         // Carregar modelos
         faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
         await Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
             faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-            faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models')
         ]);
         
         // Solicitar acesso à câmera
@@ -209,8 +213,14 @@ async function initializeFaceAPI() {
 // Chamar a inicialização do face-api quando o script carregar
 faceapiScript.onload = initializeFaceAPI;
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
+// Inicializar quando o documento estiver carregado
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await loadUsers();
+        console.log('Usuários carregados com sucesso');
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+    }
 
     // Cadastro
     document.getElementById('registerFormElement')?.addEventListener('submit', async (e) => {
