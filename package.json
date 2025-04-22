@@ -1,0 +1,16 @@
+{
+  "name": "portal-universitario-wifi",
+  "version": "1.0.0",
+  "description": "Portal de Acesso Wi-Fi Universitário",
+  "main": "index.js",
+  "scripts": {
+    "start": "firebase serve",
+    "deploy": "firebase deploy"
+  },
+  "dependencies": {
+    "firebase": "^9.0.0"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC"
+}
