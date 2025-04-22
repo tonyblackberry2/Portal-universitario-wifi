@@ -9,8 +9,8 @@ const firebaseConfig = {
   authDomain: "portal-universitario-wi-fi.firebaseapp.com",
   projectId: "portal-universitario-wi-fi",
   storageBucket: "portal-universitario-wi-fi.appspot.com",
-  messagingSenderId: "816666104369",
-  appId: "1:816666104369:web:1ac26020c805496ee07b10",
+  messagingSenderId: "23877160613",
+  appId: "1:23877160613:web:022cac1e5024e7ec1c074c",
   measurementId: "G-NDY1LQ18VC"
 };
 
