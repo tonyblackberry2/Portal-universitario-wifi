@@ -216,10 +216,23 @@ faceapiScript.onload = initializeFaceAPI;
 // Inicializar quando o documento estiver carregado
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // Aguardar o carregamento do face-api
+        if (typeof faceapi === 'undefined') {
+            await new Promise(resolve => {
+                const checkFaceAPI = setInterval(() => {
+                    if (typeof faceapi !== 'undefined') {
+                        clearInterval(checkFaceAPI);
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+
+        // Carregar usuários
         await loadUsers();
         console.log('Usuários carregados com sucesso');
     } catch (error) {
-        console.error('Erro ao carregar usuários:', error);
+        console.error('Erro ao inicializar:', error);
     }
 
     // Cadastro
