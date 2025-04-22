@@ -65,6 +65,11 @@ async function loadModels() {
     try {
         console.log('Iniciando carregamento dos modelos...');
         
+        // Verificar se o face-api está disponível
+        if (typeof faceapi === 'undefined') {
+            throw new Error('Face API não está carregado');
+        }
+        
         // Carregar cada modelo individualmente para melhor tratamento de erros
         await faceapi.nets.ssdMobilenetv1.loadFromUri('/models/ssd_mobilenetv1');
         console.log('Modelo ssdMobilenetv1 carregado');
