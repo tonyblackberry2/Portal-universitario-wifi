@@ -6,7 +6,19 @@ function switchTab(tab, element) {
 
     // Remover a classe "active" dos formulários
     document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
-    document.getElementById(tab + 'Form').classList.add('active');
+    
+    // Caso especial para a aba "faceid"
+    let formId = tab + 'Form';
+    if (tab === 'faceid') {
+        formId = 'faceIdForm';
+    }
+    
+    const formElement = document.getElementById(formId);
+    if (formElement) {
+        formElement.classList.add('active');
+    } else {
+        console.error(`Formulário com ID "${formId}" não encontrado.`);
+    }
 }
 
 // Expor a função switchTab globalmente
