@@ -255,6 +255,25 @@ async function initializeFaceAPI() {
 // Chamar a inicialização do face-api quando o script carregar
 faceapiScript.onload = initializeFaceAPI;
 
+// Função para solicitar permissão da câmera
+async function requestCameraPermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        // Parar o stream imediatamente após obter a permissão
+        stream.getTracks().forEach(track => track.stop());
+        return true;
+    } catch (error) {
+        console.error('Erro ao solicitar permissão da câmera:', error);
+        return false;
+    }
+}
+
 // Inicializar quando o documento estiver carregado
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -277,6 +296,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Carregar modelos do face-api
         console.log('Iniciando carregamento dos modelos...');
         await loadModels();
+
+        // Solicitar permissão da câmera
+        console.log('Solicitando permissão da câmera...');
+        await requestCameraPermission();
 
         // Carregar usuários
         console.log('Carregando usuários...');
@@ -432,6 +455,13 @@ async function startRegisterFaceID() {
         if (!modelsLoaded) {
             faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
             await loadModels();
+        }
+        
+        // Solicitar permissão da câmera
+        faceIdStatus.textContent = 'Solicitando permissão da câmera...';
+        const hasPermission = await requestCameraPermission();
+        if (!hasPermission) {
+            throw new Error('Permissão da câmera negada');
         }
         
         // Solicitar acesso à câmera
