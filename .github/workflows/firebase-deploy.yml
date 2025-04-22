@@ -3,7 +3,7 @@ name: Firebase Deploy
 on:
   push:
     branches:
-      - main  # Ou o nome do branch que você está usando
+      - principal  # Ou "main", dependendo do nome da sua branch
 
 jobs:
   deploy:
@@ -16,22 +16,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  # Ou a versão do Node.js que você está usando
-
-      - name: Install dependencies
-        run: |
-          npm install
+          node-version: '22'
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Firebase login:ci
+      - name: Deploy to Firebase
         env:
           FIREBASE_AUTH_TOKEN: ${{ secrets.FIREBASE_AUTH_TOKEN }}
-        run: firebase login:ci --token $FIREBASE_AUTH_TOKEN
+        run: firebase deploy --only hosting --token $FIREBASE_AUTH_TOKEN
 
-      - name: Use Firebase project
-        run: firebase use --project portal-universitario-wifi
-
-      - name: Deploy to Firebase
-        run: firebase deploy --only hosting --token ${{ secrets.FIREBASE_AUTH_TOKEN }}
