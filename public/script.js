@@ -1,5 +1,10 @@
 // Função para alternar entre as abas
 function switchTab(tab, element) {
+    if (!element) {
+        console.error('Elemento da aba não fornecido');
+        return;
+    }
+    
     // Remover a classe "active" das abas
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     element.classList.add('active');
@@ -7,10 +12,12 @@ function switchTab(tab, element) {
     // Remover a classe "active" dos formulários
     document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
     
-    // Caso especial para a aba "faceid"
+    // Casos especiais para IDs de formulários
     let formId = tab + 'Form';
     if (tab === 'faceid') {
         formId = 'faceIdForm';
+    } else if (tab === 'forgotPassword') {
+        formId = 'forgotPasswordForm';
     }
     
     const formElement = document.getElementById(formId);
@@ -42,7 +49,13 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebas
 
 // Configuração do Firebase
 const firebaseConfig = {
-    // Adicione sua configuração aqui
+    apiKey: "AIzaSyBUcqTVfqHZIHc3MShV2UzCRKanI7EWSGE",
+    authDomain: "portal-universitario-wi-fi.firebaseapp.com",
+    projectId: "portal-universitario-wi-fi",
+    storageBucket: "portal-universitario-wi-fi.appspot.com",
+    messagingSenderId: "23877160613",
+    appId: "1:23877160613:web:022cac1e5024e7ec1c074c",
+    measurementId: "G-NDY1LQ18VC"
 };
 
 // Inicialização do Firebase
