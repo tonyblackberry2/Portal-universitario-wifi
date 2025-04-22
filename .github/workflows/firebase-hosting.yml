@@ -1,30 +1,21 @@
-name: Deploy to Firebase Hosting
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v2
 
-on:
-  push:
-    branches:
-      - main
+  - name: Set up Node.js
+    uses: actions/setup-node@v2
+    with:
+      node-version: '14'  # ou a versão que você está usando
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  - name: Install dependencies
+    run: npm install
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  - name: Install Firebase CLI
+    run: npm install -g firebase-tools
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
+  - name: Authenticate with Firebase
+    run: firebase login:ci --token ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Install dependencies
-        run: npm install
+  - name: Deploy to Firebase
+    run: firebase deploy --token ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Authenticate with Firebase
-        run: firebase use --add
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      - name: Deploy to Firebase
-        run: firebase deploy --token ${{ secrets.FIREBASE_TOKEN }}
