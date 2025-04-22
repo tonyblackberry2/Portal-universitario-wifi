@@ -94,12 +94,14 @@ async function loadModels() {
 // Função para carregar usuários
 async function loadUsers() {
     try {
+        console.log('Carregando usuários...');
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
         users = [];
         snapshot.forEach((doc) => {
             users.push({ id: doc.id, ...doc.data() });
         });
+        console.log('Usuários carregados com sucesso:', users.length);
         return users;
     } catch (error) {
         console.error('Erro ao carregar usuários:', error);
