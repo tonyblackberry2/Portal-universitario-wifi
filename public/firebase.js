@@ -1,7 +1,7 @@
 // Importe o SDK do Firebase
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, getDocs } from "firebase/firestore";
 
 // Configuração do Firebase
 const firebaseConfig = {
@@ -18,6 +18,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore(app);
+
+// Exportar variáveis e funções necessárias
+export { auth, db, getDocs, collection, addDoc, signInWithEmailAndPassword, createUserWithEmailAndPassword };
 
 // Função de Login
 document.getElementById('loginFormElement').addEventListener('submit', async (e) => {

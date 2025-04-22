@@ -1,3 +1,11 @@
+// Importar funções do Firebase
+import { auth, db, getDocs, collection, addDoc } from './firebase.js';
+
+// Carregar a biblioteca face-api.js
+const faceapiScript = document.createElement('script');
+faceapiScript.src = 'https://cdn.jsdelivr.net/npm/face-api.js';
+document.head.appendChild(faceapiScript);
+
 // Função para alternar entre as abas
 function switchTab(tab, element) {
     // Verificar se o elemento existe
@@ -50,9 +58,20 @@ let loginLogs = [];
 // Variáveis globais para o reconhecimento facial
 let isFaceDetectionRunning = false;
 
+// Função para carregar usuários
 async function loadUsers() {
-    const querySnapshot = await getDocs(collection(db, "users"));
-    users = querySnapshot.docs.map(doc => doc.data());
+  try {
+    const usersRef = collection(db, 'users');
+    const snapshot = await getDocs(usersRef);
+    const users = [];
+    snapshot.forEach((doc) => {
+      users.push({ id: doc.id, ...doc.data() });
+    });
+    return users;
+  } catch (error) {
+    console.error('Erro ao carregar usuários:', error);
+    return [];
+  }
 }
 
 async function saveLogs() {
@@ -174,6 +193,21 @@ function isValidBirthdate(birthdate) {
     const age = today.getFullYear() - new Date(birthdate).getFullYear();
     return age <= 70 && new Date(birthdate) <= today;
 }
+
+// Função para inicializar o face-api
+async function initializeFaceAPI() {
+  try {
+    await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+    await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+    await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+    console.log('Face API inicializado com sucesso');
+  } catch (error) {
+    console.error('Erro ao inicializar Face API:', error);
+  }
+}
+
+// Chamar a inicialização do face-api quando o script carregar
+faceapiScript.onload = initializeFaceAPI;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
