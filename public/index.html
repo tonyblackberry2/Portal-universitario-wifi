@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Portal de Acesso Wi-Fi Universitário</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Atualização no FontAwesome para evitar erro de CORS -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Atualização do FontAwesome para versão mais recente -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Script de inicialização para garantir que switchTab esteja disponível -->
+    <script>
+        // Função temporária para evitar erros antes do carregamento do script principal
+        window.switchTab = function(tab, element) {
+            console.log("Carregando...");
+        };
+    </script>
 </head>
 <body>
     <div class="container">

@@ -1,4 +1,42 @@
-import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, collection, addDoc, getDocs, query, where } from '../firebase.js';
+// Função para alternar entre as abas
+function switchTab(tab, element) {
+    // Remover a classe "active" das abas
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+
+    // Remover a classe "active" dos formulários
+    document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+    document.getElementById(tab + 'Form').classList.add('active');
+}
+
+// Expor a função switchTab globalmente
+window.switchTab = switchTab;
+
+// Importações do Firebase usando CDN oficial
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword 
+} from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+import { 
+    getFirestore,
+    collection, 
+    addDoc,
+    getDocs,
+    query,
+    where 
+} from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+
+// Configuração do Firebase
+const firebaseConfig = {
+    // Adicione sua configuração aqui
+};
+
+// Inicialização do Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 let users = [];
 let currentUser = null;
@@ -11,19 +49,9 @@ async function loadUsers() {
 
 async function saveLogs() {
     const logCollection = collection(db, "loginLogs");
-    loginLogs.forEach(async (log) => {
+    for (const log of loginLogs) {
         await addDoc(logCollection, log);
-    });
-}
-
-function switchTab(tab, element) {
-    // Remover a classe "active" das abas
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    element.classList.add('active');
-
-    // Remover a classe "active" dos formulários
-    document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
-    document.getElementById(tab + 'Form').classList.add('active');
+    }
 }
 
 async function startFaceID() {
@@ -40,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
 
     // Cadastro
-    document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
+    document.getElementById('registerFormElement')?.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const password = document.getElementById('register-password').value;
@@ -90,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Login
-    document.getElementById('loginFormElement').addEventListener('submit', (e) => {
+    document.getElementById('loginFormElement')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const matricula = document.getElementById('login-matricula').value;
         const password = document.getElementById('login-password').value;
@@ -110,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Recuperação de Senha
-    document.getElementById('forgotPasswordFormElement').addEventListener('submit', (e) => {
+    document.getElementById('forgotPasswordFormElement')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('forgot-name').value;
         const matricula = document.getElementById('forgot-matricula').value;
@@ -128,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Admin Login
-    document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
+    document.getElementById('adminLoginForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const user = document.getElementById('admin-user').value;
         const pass = document.getElementById('admin-password').value;
