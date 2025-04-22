@@ -65,11 +65,6 @@ async function loadModels() {
     try {
         console.log('Iniciando carregamento dos modelos...');
         
-        // Verificar se o face-api está disponível
-        if (typeof faceapi === 'undefined') {
-            throw new Error('Face API não está carregado');
-        }
-        
         // Carregar cada modelo individualmente para melhor tratamento de erros
         await faceapi.nets.ssdMobilenetv1.loadFromUri('/models/ssd_mobilenetv1');
         console.log('Modelo ssdMobilenetv1 carregado');
@@ -94,14 +89,12 @@ async function loadModels() {
 // Função para carregar usuários
 async function loadUsers() {
     try {
-        console.log('Carregando usuários...');
         const usersRef = collection(db, 'users');
         const snapshot = await getDocs(usersRef);
         users = [];
         snapshot.forEach((doc) => {
             users.push({ id: doc.id, ...doc.data() });
         });
-        console.log('Usuários carregados com sucesso:', users.length);
         return users;
     } catch (error) {
         console.error('Erro ao carregar usuários:', error);
@@ -255,36 +248,10 @@ async function initializeFaceAPI() {
 // Chamar a inicialização do face-api quando o script carregar
 faceapiScript.onload = initializeFaceAPI;
 
-// Função para solicitar permissão da câmera
-async function requestCameraPermission() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-                facingMode: 'user',
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            } 
-        });
-        // Parar o stream imediatamente após obter a permissão
-        stream.getTracks().forEach(track => track.stop());
-        return true;
-    } catch (error) {
-        console.error('Erro ao solicitar permissão da câmera:', error);
-        return false;
-    }
-}
-
 // Inicializar quando o documento estiver carregado
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log('Iniciando carregamento da aplicação...');
-        
-        // Solicitar permissão da câmera
-        console.log('Solicitando permissão da câmera...');
-        const cameraPermission = await requestCameraPermission();
-        if (!cameraPermission) {
-            console.warn('Permissão da câmera não concedida');
-        }
         
         // Aguardar o carregamento do face-api
         if (typeof faceapi === 'undefined') {
@@ -461,7 +428,7 @@ async function startRegisterFaceID() {
         }
         
         // Solicitar acesso à câmera
-        faceIdStatus.textContent = 'Solicitando acesso à câmera...';
+        faceIdStatus.textContent = 'Iniciando câmera...';
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
                 facingMode: 'user',
@@ -496,11 +463,7 @@ async function startRegisterFaceID() {
         
     } catch (error) {
         console.error('Erro ao acessar a câmera:', error);
-        if (error.name === 'NotAllowedError') {
-            faceIdStatus.textContent = 'Permissão da câmera negada. Por favor, permita o acesso à câmera nas configurações do navegador.';
-        } else {
-            faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
-        }
+        faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
         isFaceDetectionRunning = false;
     }
 }

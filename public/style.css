@@ -207,7 +207,7 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#videoElement, #registerVideoElement {
+#videoElement {
     width: 100%;
     border-radius: 10px;
     transform: scaleX(-1); /* Espelhar o vídeo */
@@ -249,39 +249,4 @@ body {
     padding: 10px;
     border-radius: 5px;
     font-size: 0.9rem;
-}
-
-/* Estilos específicos para o Face ID no cadastro */
-#registerForm .face-id-container {
-    margin-top: 30px;
-    border: 2px dashed #ddd;
-    padding: 30px;
-}
-
-#registerForm .face-id-status {
-    font-size: 1rem;
-    color: #333;
-    margin-bottom: 20px;
-}
-
-#registerForm .camera-container {
-    margin: 0 auto;
-}
-
-#registerForm .face-id-button {
-    background-color: #28a745;
-}
-
-#registerForm .face-id-button:hover {
-    background-color: #218838;
-}
-
-/* Estilo para quando o Face ID foi capturado */
-.face-id-captured {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-}
-
-.face-id-captured .face-id-status {
-    color: #155724;
 }

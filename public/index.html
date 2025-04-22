@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <!-- Atualização do FontAwesome para versão mais recente -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- Biblioteca face-api.js para reconhecimento facial -->
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <!-- Script de inicialização para garantir que switchTab esteja disponível -->
     <script>
         // Função temporária para evitar erros antes do carregamento do script principal
@@ -85,18 +83,6 @@
                     <label for="register-secret-answer">Resposta da Pergunta Secreta</label>
                     <input type="text" id="register-secret-answer" name="secret-answer" required>
                 </div>
-                <div class="form-group">
-                    <label>Face ID</label>
-                    <div class="face-id-container">
-                        <div class="camera-container" id="registerCameraContainer" style="display: none;">
-                            <video id="registerVideoElement" autoplay muted></video>
-                        </div>
-                        <div class="face-id-status" id="registerFaceIdStatus">Clique para criar seu Face ID</div>
-                        <button type="button" class="face-id-button" onclick="startRegisterFaceID()">
-                            <i class="fas fa-camera"></i>
-                        </button>
-                    </div>
-                </div>
                 <div class="terms">
                     Ao se cadastrar, você concorda com os termos de uso da rede e com o monitoramento de acordo com o Marco Civil da Internet.
                 </div>
@@ -107,14 +93,13 @@
         <!-- Formulário de Face ID -->
         <div id="faceIdForm" class="form-container">
             <div class="face-id-container">
-                <h3>Reconhecimento Facial</h3>
-                <div class="camera-container" id="cameraContainer">
-                    <video id="videoElement" autoplay muted></video>
-                </div>
-                <div class="face-id-status" id="faceIdStatus">Clique para iniciar o reconhecimento facial</div>
                 <button class="face-id-button" onclick="startFaceID()">
                     <i class="fas fa-camera"></i>
                 </button>
+                <div class="face-id-status" id="faceIdStatus">Clique para iniciar o reconhecimento facial</div>
+                <div class="camera-container" id="cameraContainer">
+                    <video id="videoElement" autoplay></video>
+                </div>
             </div>
         </div>
 
@@ -175,8 +160,7 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script type="module" src="firebase.js"></script>
+    <!-- Script que manipula as abas -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
