@@ -1,68 +1,48 @@
 // Função para alternar entre as abas
 function switchTab(tab, element) {
+    // Verificar se o elemento existe
     if (!element) {
         console.error('Elemento da aba não fornecido');
         return;
     }
     
-    // Remover a classe "active" das abas
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    element.classList.add('active');
+    try {
+        // Remover a classe "active" das abas
+        const tabs = document.querySelectorAll('.tab');
+        if (tabs && tabs.length > 0) {
+            tabs.forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
 
-    // Remover a classe "active" dos formulários
-    document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
-    
-    // Casos especiais para IDs de formulários
-    let formId = tab + 'Form';
-    if (tab === 'faceid') {
-        formId = 'faceIdForm';
-    } else if (tab === 'forgotPassword') {
-        formId = 'forgotPasswordForm';
-    }
-    
-    const formElement = document.getElementById(formId);
-    if (formElement) {
-        formElement.classList.add('active');
-    } else {
-        console.error(`Formulário com ID "${formId}" não encontrado.`);
+        // Remover a classe "active" dos formulários
+        const forms = document.querySelectorAll('.form-container');
+        if (forms && forms.length > 0) {
+            forms.forEach(f => f.classList.remove('active'));
+        }
+        
+        // Casos especiais para IDs de formulários
+        let formId = tab + 'Form';
+        if (tab === 'faceid') {
+            formId = 'faceIdForm';
+        } else if (tab === 'forgotPassword') {
+            formId = 'forgotPasswordForm';
+        }
+        
+        const formElement = document.getElementById(formId);
+        if (formElement) {
+            formElement.classList.add('active');
+        } else {
+            console.error(`Formulário com ID "${formId}" não encontrado.`);
+        }
+    } catch (error) {
+        console.error('Erro ao alternar abas:', error);
     }
 }
 
 // Expor a função switchTab globalmente
 window.switchTab = switchTab;
 
-// Importações do Firebase usando CDN oficial
-import { 
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword 
-} from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-import { 
-    getFirestore,
-    collection, 
-    addDoc,
-    getDocs,
-    query,
-    where 
-} from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-
-// Configuração do Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyBUcqTVfqHZIHc3MShV2UzCRKanI7EWSGE",
-    authDomain: "portal-universitario-wi-fi.firebaseapp.com",
-    projectId: "portal-universitario-wi-fi",
-    storageBucket: "portal-universitario-wi-fi.appspot.com",
-    messagingSenderId: "23877160613",
-    appId: "1:23877160613:web:022cac1e5024e7ec1c074c",
-    measurementId: "G-NDY1LQ18VC"
-};
-
-// Inicialização do Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
+// Variáveis globais
 let users = [];
 let currentUser = null;
 let loginLogs = [];
