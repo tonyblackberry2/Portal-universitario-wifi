@@ -1,16 +1,24 @@
 {
-  "name": "portal-universitario-wifi",
+  "name": "sistema-autenticacao",
   "version": "1.0.0",
-  "description": "Portal de Acesso Wi-Fi Universitário",
-  "main": "index.js",
+  "description": "Sistema de autenticação com múltiplas formas de login",
+  "main": "public/script.js",
   "scripts": {
-    "start": "firebase serve",
-    "deploy": "firebase deploy"
+    "start": "http-server public -p 3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "firebase": "^9.0.0"
-  },
-  "devDependencies": {},
+  "keywords": [
+    "autenticação",
+    "firebase",
+    "face-id",
+    "login"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "dependencies": {
+    "firebase": "^10.8.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
 }
