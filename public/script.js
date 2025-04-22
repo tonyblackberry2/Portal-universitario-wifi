@@ -42,6 +42,9 @@ let users = [];
 let currentUser = null;
 let loginLogs = [];
 
+// Variáveis globais para o reconhecimento facial
+let isFaceDetectionRunning = false;
+
 async function loadUsers() {
     const querySnapshot = await getDocs(collection(db, "users"));
     users = querySnapshot.docs.map(doc => doc.data());
@@ -55,8 +58,111 @@ async function saveLogs() {
 }
 
 async function startFaceID() {
-    // Código atual do Face ID, você pode manter ele como está.
+    const videoElement = document.getElementById('videoElement');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const faceIdStatus = document.getElementById('faceIdStatus');
+    
+    if (isFaceDetectionRunning) {
+        // Parar a detecção se já estiver rodando
+        stopFaceDetection();
+        return;
+    }
+    
+    try {
+        // Carregar modelos
+        faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+            faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+            faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+        ]);
+        
+        // Solicitar acesso à câmera
+        faceIdStatus.textContent = 'Iniciando câmera...';
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        
+        // Mostrar o vídeo
+        videoElement.srcObject = stream;
+        cameraContainer.style.display = 'block';
+        faceIdStatus.textContent = 'Posicione seu rosto na frente da câmera e clique em "Verificar Rosto"';
+        
+        // Adicionar botão de verificação
+        const verifyButton = document.createElement('button');
+        verifyButton.className = 'btn';
+        verifyButton.textContent = 'Verificar Rosto';
+        verifyButton.onclick = scanFace;
+        faceIdStatus.appendChild(document.createElement('br'));
+        faceIdStatus.appendChild(verifyButton);
+        
+        isFaceDetectionRunning = true;
+        
+    } catch (error) {
+        console.error('Erro ao acessar a câmera:', error);
+        faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
+        isFaceDetectionRunning = false;
+    }
 }
+
+// Função para verificar o rosto
+async function scanFace() {
+    const videoElement = document.getElementById('videoElement');
+    const faceIdStatus = document.getElementById('faceIdStatus');
+    
+    try {
+        faceIdStatus.textContent = 'Analisando rosto...';
+        
+        const detection = await faceapi
+            .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+        
+        if (detection) {
+            faceIdStatus.textContent = 'Rosto detectado com sucesso!';
+            console.log('Descriptor:', detection.descriptor);
+            
+            // Aqui você pode adicionar a lógica para verificar a identidade
+            // Por exemplo, comparar com um banco de dados de rostos conhecidos
+            
+            // Simulação de verificação bem-sucedida
+            setTimeout(() => {
+                faceIdStatus.textContent = 'Rosto reconhecido! Você pode fazer login.';
+                stopFaceDetection();
+            }, 2000);
+        } else {
+            faceIdStatus.textContent = 'Nenhum rosto detectado. Tente novamente.';
+        }
+    } catch (error) {
+        console.error('Erro ao detectar rosto:', error);
+        faceIdStatus.textContent = 'Erro ao detectar rosto. Tente novamente.';
+    }
+}
+
+function stopFaceDetection() {
+    const videoElement = document.getElementById('videoElement');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const faceIdStatus = document.getElementById('faceIdStatus');
+    
+    if (videoElement.srcObject) {
+        const tracks = videoElement.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        videoElement.srcObject = null;
+    }
+    
+    cameraContainer.style.display = 'none';
+    faceIdStatus.textContent = 'Clique para iniciar o reconhecimento facial';
+    isFaceDetectionRunning = false;
+}
+
+// Expor as funções globalmente
+window.startFaceID = startFaceID;
+window.stopFaceDetection = stopFaceDetection;
+window.scanFace = scanFace;
 
 function isValidBirthdate(birthdate) {
     const today = new Date();

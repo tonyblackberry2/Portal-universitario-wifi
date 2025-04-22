@@ -163,6 +163,9 @@ body {
 .face-id-container {
     text-align: center;
     margin: 20px 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
 }
 
 .face-id-button {
@@ -170,36 +173,44 @@ body {
     color: white;
     border: none;
     border-radius: 50%;
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     font-size: 24px;
     cursor: pointer;
     margin: 20px auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .face-id-button:hover {
     background-color: #2a5298;
+    transform: scale(1.05);
 }
 
 .face-id-status {
-    margin-top: 10px;
+    margin: 15px 0;
     color: #666;
+    font-size: 0.9rem;
+    min-height: 20px;
 }
 
 .camera-container {
     width: 100%;
-    max-width: 300px;
-    margin: 0 auto;
+    max-width: 400px;
+    margin: 20px auto;
     display: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #videoElement {
     width: 100%;
     border-radius: 10px;
+    transform: scaleX(-1); /* Espelhar o vídeo */
 }
 
 /* Corrigindo a estrutura de exibição para os formulários de "Esqueci a Senha" e "Login Administrativo" */
