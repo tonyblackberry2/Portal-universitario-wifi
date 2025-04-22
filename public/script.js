@@ -58,6 +58,7 @@ let loginLogs = [];
 // Variáveis globais para o reconhecimento facial
 let isFaceDetectionRunning = false;
 let modelsLoaded = false;
+let registerFaceDescriptor = null;
 
 // Função para carregar os modelos do face-api
 async function loadModels() {
@@ -283,6 +284,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('registerFormElement')?.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        if (!registerFaceDescriptor) {
+            alert('Por favor, crie seu Face ID antes de se cadastrar.');
+            return;
+        }
+
         const password = document.getElementById('register-password').value;
         const confirm = document.getElementById('register-confirm-password').value;
         const birthdate = document.getElementById('register-birthdate').value;
@@ -318,11 +324,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 name: document.getElementById('register-name').value,
                 birthdate,
                 secretQuestion,
-                secretAnswer
+                secretAnswer,
+                faceDescriptor: Array.from(registerFaceDescriptor) // Converter para array para salvar no Firestore
             });
 
             alert('Cadastro realizado com sucesso!');
             e.target.reset();
+            registerFaceDescriptor = null; // Resetar o Face ID
         } catch (error) {
             console.error("Erro ao cadastrar:", error.message);
             alert("Erro ao cadastrar");
@@ -395,3 +403,123 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
+// Função para iniciar o registro do Face ID
+async function startRegisterFaceID() {
+    const videoElement = document.getElementById('registerVideoElement');
+    const cameraContainer = document.getElementById('registerCameraContainer');
+    const faceIdStatus = document.getElementById('registerFaceIdStatus');
+    
+    if (isFaceDetectionRunning) {
+        stopRegisterFaceDetection();
+        return;
+    }
+    
+    try {
+        // Verificar se o face-api está carregado
+        if (typeof faceapi === 'undefined') {
+            throw new Error('Face API não está carregado. Aguarde um momento e tente novamente.');
+        }
+
+        // Carregar modelos se ainda não estiverem carregados
+        if (!modelsLoaded) {
+            faceIdStatus.textContent = 'Carregando modelos de reconhecimento facial...';
+            await loadModels();
+        }
+        
+        // Solicitar acesso à câmera
+        faceIdStatus.textContent = 'Iniciando câmera...';
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        
+        // Mostrar o vídeo
+        videoElement.srcObject = stream;
+        cameraContainer.style.display = 'block';
+        
+        // Aguardar o vídeo estar pronto
+        await new Promise((resolve) => {
+            videoElement.onloadedmetadata = () => {
+                videoElement.play();
+                resolve();
+            };
+        });
+        
+        faceIdStatus.textContent = 'Posicione seu rosto na frente da câmera e clique em "Capturar Face ID"';
+        
+        // Adicionar botão de captura
+        const captureButton = document.createElement('button');
+        captureButton.className = 'btn';
+        captureButton.textContent = 'Capturar Face ID';
+        captureButton.onclick = captureRegisterFaceID;
+        faceIdStatus.appendChild(document.createElement('br'));
+        faceIdStatus.appendChild(captureButton);
+        
+        isFaceDetectionRunning = true;
+        
+    } catch (error) {
+        console.error('Erro ao acessar a câmera:', error);
+        faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
+        isFaceDetectionRunning = false;
+    }
+}
+
+// Função para capturar o Face ID durante o registro
+async function captureRegisterFaceID() {
+    const videoElement = document.getElementById('registerVideoElement');
+    const faceIdStatus = document.getElementById('registerFaceIdStatus');
+    
+    try {
+        faceIdStatus.textContent = 'Capturando seu rosto...';
+        
+        const detection = await faceapi
+            .detectSingleFace(videoElement, new faceapi.SsdMobilenetv1Options())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+        
+        if (detection) {
+            registerFaceDescriptor = detection.descriptor;
+            faceIdStatus.textContent = 'Face ID capturado com sucesso!';
+            stopRegisterFaceDetection();
+            
+            // Habilitar o botão de cadastro
+            const registerButton = document.querySelector('#registerFormElement button[type="submit"]');
+            if (registerButton) {
+                registerButton.disabled = false;
+            }
+        } else {
+            faceIdStatus.textContent = 'Nenhum rosto detectado. Tente novamente.';
+        }
+    } catch (error) {
+        console.error('Erro ao capturar Face ID:', error);
+        faceIdStatus.textContent = 'Erro ao capturar Face ID. Tente novamente.';
+    }
+}
+
+// Função para parar a detecção facial durante o registro
+function stopRegisterFaceDetection() {
+    const videoElement = document.getElementById('registerVideoElement');
+    const cameraContainer = document.getElementById('registerCameraContainer');
+    const faceIdStatus = document.getElementById('registerFaceIdStatus');
+    
+    if (videoElement.srcObject) {
+        const tracks = videoElement.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        videoElement.srcObject = null;
+    }
+    
+    cameraContainer.style.display = 'none';
+    faceIdStatus.textContent = registerFaceDescriptor ? 
+        'Face ID capturado com sucesso!' : 
+        'Clique para criar seu Face ID';
+    isFaceDetectionRunning = false;
+}
+
+// Expor funções globalmente
+window.startRegisterFaceID = startRegisterFaceID;
+window.stopRegisterFaceDetection = stopRegisterFaceDetection;
+window.captureRegisterFaceID = captureRegisterFaceID;
