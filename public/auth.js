@@ -54,8 +54,11 @@ tabs.forEach((tab, index) => {
 // Login
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = loginForm.email.value;
+    const matricula = loginForm.email.value;
     const password = loginForm.password.value;
+    
+    // Criar e-mail fictício a partir da matrícula
+    const fakeEmail = `${matricula}@universidade.com`;
 
     try {
         // Verificar se o Firebase está configurado corretamente
@@ -64,7 +67,7 @@ loginForm.addEventListener('submit', async (e) => {
             return;
         }
         
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, fakeEmail, password);
         const user = userCredential.user;
         
         // Verificar se o usuário é admin
@@ -74,7 +77,7 @@ loginForm.addEventListener('submit', async (e) => {
             
             // Registrar atividade de login
             await addDoc(collection(db, "loginLogs"), {
-                name: user.email,
+                name: matricula,
                 date: new Date().toLocaleString(),
                 via: 'Login',
                 role: userData.role || 'user',
@@ -100,9 +103,12 @@ loginForm.addEventListener('submit', async (e) => {
 // Registro
 registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = registerForm.email.value;
+    const matricula = registerForm.email.value;
     const password = registerForm.password.value;
     const confirmPassword = registerForm.confirmPassword.value;
+    
+    // Criar e-mail fictício a partir da matrícula
+    const fakeEmail = `${matricula}@universidade.com`;
 
     if (password !== confirmPassword) {
         showMessage('As senhas não coincidem!', 'error');
@@ -116,19 +122,20 @@ registerForm.addEventListener('submit', async (e) => {
             return;
         }
         
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
         const user = userCredential.user;
         
         // Salvar dados do usuário no Firestore
         await setDoc(doc(db, "usuarios", user.uid), {
-            email: user.email,
+            matricula: matricula,
+            email: fakeEmail,
             role: 'user', // Por padrão, todos os usuários são 'user'
             createdAt: serverTimestamp()
         });
         
         // Registrar atividade de cadastro
         await addDoc(collection(db, "loginLogs"), {
-            name: user.email,
+            name: matricula,
             date: new Date().toLocaleString(),
             via: 'Cadastro',
             role: 'user',
@@ -146,7 +153,10 @@ registerForm.addEventListener('submit', async (e) => {
 // Recuperação de senha
 recoveryForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = recoveryForm.email.value;
+    const matricula = recoveryForm.email.value;
+    
+    // Criar e-mail fictício a partir da matrícula
+    const fakeEmail = `${matricula}@universidade.com`;
 
     try {
         // Verificar se o Firebase está configurado corretamente
@@ -155,11 +165,11 @@ recoveryForm.addEventListener('submit', async (e) => {
             return;
         }
         
-        await sendPasswordResetEmail(auth, email);
+        await sendPasswordResetEmail(auth, fakeEmail);
         
         // Registrar atividade de recuperação de senha
         await addDoc(collection(db, "loginLogs"), {
-            name: email,
+            name: matricula,
             date: new Date().toLocaleString(),
             via: 'Recuperação de Senha',
             timestamp: serverTimestamp()

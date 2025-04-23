@@ -272,13 +272,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('registerFormElement')?.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const matricula = document.getElementById('register-matricula').value;
+        const name = document.getElementById('register-name').value;
+        const birthdate = document.getElementById('register-birthdate').value;
         const password = document.getElementById('register-password').value;
         const confirm = document.getElementById('register-confirm-password').value;
-        const birthdate = document.getElementById('register-birthdate').value;
         const secretQuestion = document.getElementById('register-secret-question').value;
         const secretAnswer = document.getElementById('register-secret-answer').value;
-        const name = document.getElementById('register-name').value;
-        const matricula = document.getElementById('register-matricula').value;
+        
+        // Criar e-mail fictício a partir da matrícula
+        const fakeEmail = `${matricula}@universidade.com`;
 
         // Verifica se as senhas coincidem
         if (password !== confirm) {
@@ -305,7 +308,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
-            const userCredential = await createUserWithEmailAndPassword(auth, matricula, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
             const user = userCredential.user;
 
             // Salvar no Firestore
@@ -315,6 +318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 birthdate,
                 secretQuestion,
                 secretAnswer,
+                email: fakeEmail,
                 createdAt: serverTimestamp()
             };
             
@@ -347,6 +351,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const matricula = document.getElementById('login-matricula').value;
         const password = document.getElementById('login-password').value;
+        
+        // Criar e-mail fictício a partir da matrícula
+        const fakeEmail = `${matricula}@universidade.com`;
 
         try {
             // Verificar se o Firebase está configurado corretamente
@@ -355,7 +362,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
-            const userCredential = await signInWithEmailAndPassword(auth, matricula, password);
+            const userCredential = await signInWithEmailAndPassword(auth, fakeEmail, password);
             currentUser = userCredential.user;
             
             // Buscar nome do usuário no Firestore
