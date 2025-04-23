@@ -122,11 +122,12 @@ registerForm.addEventListener('submit', async (e) => {
             return;
         }
         
+        // Usando a abordagem sugerida, adaptada para Firebase v9
         const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
-        const user = userCredential.user;
+        const uid = userCredential.user.uid;
         
         // Salvar dados do usuário no Firestore
-        await setDoc(doc(db, "usuarios", user.uid), {
+        await setDoc(doc(db, "usuarios", uid), {
             matricula: matricula,
             email: fakeEmail,
             role: 'user', // Por padrão, todos os usuários são 'user'

@@ -39,7 +39,9 @@ import {
     where,
     orderBy,
     limit,
-    serverTimestamp
+    serverTimestamp,
+    setDoc,
+    doc
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 
@@ -308,8 +310,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
+            // Usando a abordagem sugerida, adaptada para Firebase v9
             const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
-            const user = userCredential.user;
+            const uid = userCredential.user.uid;
 
             // Salvar no Firestore
             const userData = {
@@ -322,7 +325,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 createdAt: serverTimestamp()
             };
             
-            await addDoc(collection(db, "users"), userData);
+            // Usando doc() em vez de addDoc() para salvar com o mesmo ID do usuário
+            await setDoc(doc(db, "users", uid), userData);
             
             // Registrar atividade de cadastro
             loginLogs.push({ 
