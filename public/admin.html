@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Portal Wi-Fi Universitário</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>Painel Administrativo</h1>
+            <p>Portal Wi-Fi Universitário</p>
+        </div>
+
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2>Gerenciamento de Usuários</h2>
+                <button id="logoutBtn" class="btn btn-danger">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+
+            <div class="admin-content">
+                <div class="admin-section">
+                    <h3>Usuários Registrados</h3>
+                    <div id="usersList" class="list-container"></div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>Logs de Atividade</h3>
+                    <div id="activityLogs" class="list-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html> 

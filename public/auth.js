@@ -9,6 +9,9 @@ import {
     getFirestore,
     collection, 
     addDoc,
+    doc,
+    setDoc,
+    getDoc,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
@@ -17,7 +20,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyAS_VkKisuxVUhA8TlHPDYqIgEDfSCI46M",
     authDomain: "portal-universitario-wifi.firebaseapp.com",
     projectId: "portal-universitario-wifi",
-    storageBucket: "portal-universitario-wifi.firebasestorage.app",
+    storageBucket: "portal-universitario-wifi.appspot.com",
     messagingSenderId: "23877160613",
     appId: "1:23877160613:web:022cac1e5024e7ec1c074c",
     measurementId: "G-00EZJMJ0KB"
@@ -64,17 +67,31 @@ loginForm.addEventListener('submit', async (e) => {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        // Registrar atividade de login
-        await addDoc(collection(db, "loginLogs"), {
-            name: user.email,
-            date: new Date().toLocaleString(),
-            via: 'Login',
-            timestamp: serverTimestamp()
-        });
-        
-        showMessage('Login realizado com sucesso! Bem-vindo!', 'success');
-        // Redirecionar para a página principal após login
-        window.location.href = '/index.html';
+        // Verificar se o usuário é admin
+        const userDoc = await getDoc(doc(db, "usuarios", user.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            
+            // Registrar atividade de login
+            await addDoc(collection(db, "loginLogs"), {
+                name: user.email,
+                date: new Date().toLocaleString(),
+                via: 'Login',
+                role: userData.role || 'user',
+                timestamp: serverTimestamp()
+            });
+            
+            showMessage('Login realizado com sucesso! Bem-vindo!', 'success');
+            
+            // Redirecionar baseado no papel do usuário
+            if (userData.role === 'admin') {
+                window.location.href = '/admin.html';
+            } else {
+                window.location.href = '/index.html';
+            }
+        } else {
+            showMessage('Erro ao verificar permissões do usuário.', 'error');
+        }
     } catch (error) {
         showMessage(getErrorMessage(error.code), 'error');
     }
@@ -102,11 +119,19 @@ registerForm.addEventListener('submit', async (e) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
+        // Salvar dados do usuário no Firestore
+        await setDoc(doc(db, "usuarios", user.uid), {
+            email: user.email,
+            role: 'user', // Por padrão, todos os usuários são 'user'
+            createdAt: serverTimestamp()
+        });
+        
         // Registrar atividade de cadastro
         await addDoc(collection(db, "loginLogs"), {
             name: user.email,
             date: new Date().toLocaleString(),
             via: 'Cadastro',
+            role: 'user',
             timestamp: serverTimestamp()
         });
         

@@ -297,3 +297,112 @@ body {
         opacity: 0;
     }
 }
+
+/* Estilos do Painel Administrativo */
+.admin-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-header h2 {
+    color: #1e3c72;
+    margin: 0;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.admin-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.admin-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.admin-section h3 {
+    color: #1e3c72;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.list-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.user-item, .log-item {
+    background: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-info, .log-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.user-email, .log-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.user-role, .log-action {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.log-date {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+}
+
+/* Estilização da barra de rolagem */
+.list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.list-container::-webkit-scrollbar-thumb {
+    background: #1e3c72;
+    border-radius: 4px;
+}
+
+.list-container::-webkit-scrollbar-thumb:hover {
+    background: #2a5298;
+}
