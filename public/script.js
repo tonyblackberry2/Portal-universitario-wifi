@@ -329,6 +329,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 secretQuestion,
                 secretAnswer,
                 email: fakeEmail,
+                role: 'user', // Por padrão, todos os usuários são 'user'
                 createdAt: serverTimestamp()
             };
             
