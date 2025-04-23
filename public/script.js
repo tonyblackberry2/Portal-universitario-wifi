@@ -36,13 +36,22 @@ import {
     addDoc,
     getDocs,
     query,
-    where 
+    where,
+    orderBy,
+    limit,
+    serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
 
 // Configuração do Firebase
 const firebaseConfig = {
-    // Adicione sua configuração aqui
+  apiKey: "AIzaSyBUcqTVfqHZIHc3MShV2UzCRKanI7EWSGE",
+  authDomain: "portal-universitario-wi-fi.firebaseapp.com",
+  projectId: "portal-universitario-wi-fi",
+  storageBucket: "portal-universitario-wi-fi.appspot.com",
+  messagingSenderId: "23877160613",
+  appId: "1:23877160613:web:022cac1e5024e7ec1c074c",
+  measurementId: "G-NDY1LQ18VC"
 };
 
 // Inicialização do Firebase
@@ -57,15 +66,75 @@ let loginLogs = [];
 // Variáveis globais para o reconhecimento facial
 let isFaceDetectionRunning = false;
 
+// Função para exibir mensagens de sucesso
+function showSuccessMessage(message, duration = 3000) {
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'success-message';
+    messageContainer.textContent = message;
+    document.body.appendChild(messageContainer);
+    
+    setTimeout(() => {
+        messageContainer.classList.add('fade-out');
+        setTimeout(() => {
+            document.body.removeChild(messageContainer);
+        }, 500);
+    }, duration);
+}
+
+// Função para exibir mensagens de erro
+function showErrorMessage(message, duration = 3000) {
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'error-message';
+    messageContainer.textContent = message;
+    document.body.appendChild(messageContainer);
+    
+    setTimeout(() => {
+        messageContainer.classList.add('fade-out');
+        setTimeout(() => {
+            document.body.removeChild(messageContainer);
+        }, 500);
+    }, duration);
+}
+
 async function loadUsers() {
-    const querySnapshot = await getDocs(collection(db, "users"));
-    users = querySnapshot.docs.map(doc => doc.data());
+    try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        users = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        console.log("Usuários carregados com sucesso:", users.length);
+    } catch (error) {
+        console.error("Erro ao carregar usuários:", error);
+        showErrorMessage("Erro ao carregar usuários do banco de dados");
+    }
 }
 
 async function saveLogs() {
-    const logCollection = collection(db, "loginLogs");
-    for (const log of loginLogs) {
-        await addDoc(logCollection, log);
+    try {
+        const logCollection = collection(db, "loginLogs");
+        for (const log of loginLogs) {
+            await addDoc(logCollection, {
+                ...log,
+                timestamp: serverTimestamp()
+            });
+        }
+        console.log("Logs salvos com sucesso:", loginLogs.length);
+    } catch (error) {
+        console.error("Erro ao salvar logs:", error);
+        showErrorMessage("Erro ao salvar logs de atividade");
+    }
+}
+
+async function loadLogs() {
+    try {
+        const logCollection = collection(db, "loginLogs");
+        const q = query(logCollection, orderBy("timestamp", "desc"), limit(50));
+        const querySnapshot = await getDocs(q);
+        loginLogs = querySnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        console.log("Logs carregados com sucesso:", loginLogs.length);
+        return loginLogs;
+    } catch (error) {
+        console.error("Erro ao carregar logs:", error);
+        showErrorMessage("Erro ao carregar logs de atividade");
+        return [];
     }
 }
 
@@ -117,6 +186,7 @@ async function startFaceID() {
     } catch (error) {
         console.error('Erro ao acessar a câmera:', error);
         faceIdStatus.textContent = 'Erro ao acessar a câmera. Verifique as permissões.';
+        showErrorMessage('Erro ao acessar a câmera. Verifique as permissões.');
         isFaceDetectionRunning = false;
     }
 }
@@ -144,14 +214,26 @@ async function scanFace() {
             // Simulação de verificação bem-sucedida
             setTimeout(() => {
                 faceIdStatus.textContent = 'Rosto reconhecido! Você pode fazer login.';
+                showSuccessMessage('Reconhecimento facial bem-sucedido!');
+                
+                // Registrar atividade de login via Face ID
+                loginLogs.push({ 
+                    name: 'Usuário via Face ID', 
+                    date: new Date().toLocaleString(), 
+                    via: 'Face ID' 
+                });
+                saveLogs();
+                
                 stopFaceDetection();
             }, 2000);
         } else {
             faceIdStatus.textContent = 'Nenhum rosto detectado. Tente novamente.';
+            showErrorMessage('Nenhum rosto detectado. Tente novamente.');
         }
     } catch (error) {
         console.error('Erro ao detectar rosto:', error);
         faceIdStatus.textContent = 'Erro ao detectar rosto. Tente novamente.';
+        showErrorMessage('Erro ao detectar rosto. Tente novamente.');
     }
 }
 
@@ -182,8 +264,9 @@ function isValidBirthdate(birthdate) {
     return age <= 70 && new Date(birthdate) <= today;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadUsers();
+    await loadLogs();
 
     // Cadastro
     document.getElementById('registerFormElement')?.addEventListener('submit', async (e) => {
@@ -194,22 +277,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const birthdate = document.getElementById('register-birthdate').value;
         const secretQuestion = document.getElementById('register-secret-question').value;
         const secretAnswer = document.getElementById('register-secret-answer').value;
+        const name = document.getElementById('register-name').value;
+        const matricula = document.getElementById('register-matricula').value;
 
         // Verifica se as senhas coincidem
         if (password !== confirm) {
-            alert('As senhas não coincidem!');
+            showErrorMessage('As senhas não coincidem!');
             return;
         }
 
         // Verifica se a data de nascimento é válida
         if (!isValidBirthdate(birthdate)) {
-            alert('Data de nascimento inválida!');
+            showErrorMessage('Data de nascimento inválida!');
             return;
         }
 
-        const matricula = document.getElementById('register-matricula').value;
         if (users.find(u => u.matricula === matricula)) {
-            alert('Essa matrícula já está cadastrada!');
+            showErrorMessage('Essa matrícula já está cadastrada!');
             return;
         }
 
@@ -219,44 +303,72 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = userCredential.user;
 
             // Salvar no Firestore
-            await addDoc(collection(db, "users"), {
+            const userData = {
                 matricula,
-                name: document.getElementById('register-name').value,
+                name,
                 birthdate,
                 secretQuestion,
-                secretAnswer
+                secretAnswer,
+                createdAt: serverTimestamp()
+            };
+            
+            await addDoc(collection(db, "users"), userData);
+            
+            // Registrar atividade de cadastro
+            loginLogs.push({ 
+                name: name, 
+                date: new Date().toLocaleString(), 
+                via: 'Cadastro' 
             });
-
-            alert('Cadastro realizado com sucesso!');
+            await saveLogs();
+            
+            showSuccessMessage('Cadastro realizado com sucesso!');
             e.target.reset();
+            
+            // Alternar para a aba de login após o cadastro
+            const loginTab = document.querySelector('.tab:nth-child(1)');
+            if (loginTab) {
+                switchTab('login', loginTab);
+            }
         } catch (error) {
             console.error("Erro ao cadastrar:", error.message);
-            alert("Erro ao cadastrar");
+            showErrorMessage(`Erro ao cadastrar: ${error.message}`);
         }
     });
 
     // Login
-    document.getElementById('loginFormElement')?.addEventListener('submit', (e) => {
+    document.getElementById('loginFormElement')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const matricula = document.getElementById('login-matricula').value;
         const password = document.getElementById('login-password').value;
 
-        signInWithEmailAndPassword(auth, matricula, password)
-            .then(async (userCredential) => {
-                currentUser = userCredential.user;
-                loginLogs.push({ name: currentUser.displayName, date: new Date().toLocaleString(), via: 'Login' });
-                await saveLogs();
-                alert('Login realizado com sucesso!');
-                e.target.reset();
-            })
-            .catch((error) => {
-                console.error('Erro no login:', error);
-                alert('Matrícula ou senha incorretos!');
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, matricula, password);
+            currentUser = userCredential.user;
+            
+            // Buscar nome do usuário no Firestore
+            const userQuery = query(collection(db, "users"), where("matricula", "==", matricula));
+            const userSnapshot = await getDocs(userQuery);
+            const userName = userSnapshot.docs[0]?.data()?.name || 'Usuário';
+            
+            // Registrar atividade de login
+            loginLogs.push({ 
+                name: userName, 
+                date: new Date().toLocaleString(), 
+                via: 'Login' 
             });
+            await saveLogs();
+            
+            showSuccessMessage(`Login realizado com sucesso! Bem-vindo, ${userName}!`);
+            e.target.reset();
+        } catch (error) {
+            console.error('Erro no login:', error);
+            showErrorMessage('Matrícula ou senha incorretos!');
+        }
     });
 
     // Recuperação de Senha
-    document.getElementById('forgotPasswordFormElement')?.addEventListener('submit', (e) => {
+    document.getElementById('forgotPasswordFormElement')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('forgot-name').value;
         const matricula = document.getElementById('forgot-matricula').value;
@@ -267,28 +379,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = users.find(u => u.name === name && u.matricula === matricula && u.birthdate === birthdate);
 
         if (user && user.secretQuestion === secretQuestion && user.secretAnswer === secretAnswer) {
-            alert('Perguntas respondidas corretamente! Você pode redefinir sua senha.');
+            showSuccessMessage('Perguntas respondidas corretamente! Você pode redefinir sua senha.');
+            
+            // Registrar atividade de recuperação de senha
+            loginLogs.push({ 
+                name: name, 
+                date: new Date().toLocaleString(), 
+                via: 'Recuperação de Senha' 
+            });
+            await saveLogs();
         } else {
-            alert('Alguma resposta está incorreta. Tente novamente.');
+            showErrorMessage('Alguma resposta está incorreta. Tente novamente.');
         }
     });
 
     // Admin Login
-    document.getElementById('adminLoginForm')?.addEventListener('submit', (e) => {
+    document.getElementById('adminLoginForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const user = document.getElementById('admin-user').value;
         const pass = document.getElementById('admin-password').value;
 
         if (user === 'adm123' && pass === 'admlogin123') {
-            alert('Login administrativo bem-sucedido!');
+            showSuccessMessage('Login administrativo bem-sucedido!');
+            
+            // Registrar atividade de login administrativo
+            loginLogs.push({ 
+                name: 'Administrador', 
+                date: new Date().toLocaleString(), 
+                via: 'Login Admin' 
+            });
+            await saveLogs();
+            
             const panel = document.getElementById('adminPanel');
             const logList = document.getElementById('activityLog');
             logList.innerHTML = '';
 
-            if (loginLogs.length === 0) {
+            // Carregar logs do Firestore
+            const logs = await loadLogs();
+            
+            if (logs.length === 0) {
                 logList.innerHTML = '<li>Nenhuma atividade registrada.</li>';
             } else {
-                loginLogs.forEach(log => {
+                logs.forEach(log => {
                     const item = document.createElement('li');
                     item.textContent = `${log.date} - ${log.name} (${log.via})`;
                     logList.appendChild(item);
@@ -297,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             panel.style.display = 'block';
         } else {
-            alert('Usuário ou senha administrativa incorretos!');
+            showErrorMessage('Usuário ou senha administrativa incorretos!');
         }
     });
 });
