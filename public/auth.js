@@ -14,13 +14,13 @@ import {
 
 // Configuração do Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyBUcqTVfqHZIHc3MShV2UzCRKanI7EWSGE",
-    authDomain: "portal-universitario-wi-fi.firebaseapp.com",
-    projectId: "portal-universitario-wi-fi",
-    storageBucket: "portal-universitario-wi-fi.appspot.com",
+    apiKey: "AIzaSyAS_VkKisuxVUhA8TlHPDYqIgEDfSCI46M",
+    authDomain: "portal-universitario-wifi.firebaseapp.com",
+    projectId: "portal-universitario-wifi",
+    storageBucket: "portal-universitario-wifi.firebasestorage.app",
     messagingSenderId: "23877160613",
     appId: "1:23877160613:web:022cac1e5024e7ec1c074c",
-    measurementId: "G-NDY1LQ18VC"
+    measurementId: "G-00EZJMJ0KB"
 };
 
 // Inicializar Firebase
@@ -55,6 +55,12 @@ loginForm.addEventListener('submit', async (e) => {
     const password = loginForm.password.value;
 
     try {
+        // Verificar se o Firebase está configurado corretamente
+        if (!auth) {
+            showMessage('Erro de configuração do Firebase. Verifique a chave de API.', 'error');
+            return;
+        }
+        
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
@@ -87,6 +93,12 @@ registerForm.addEventListener('submit', async (e) => {
     }
 
     try {
+        // Verificar se o Firebase está configurado corretamente
+        if (!auth) {
+            showMessage('Erro de configuração do Firebase. Verifique a chave de API.', 'error');
+            return;
+        }
+        
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
@@ -112,6 +124,12 @@ recoveryForm.addEventListener('submit', async (e) => {
     const email = recoveryForm.email.value;
 
     try {
+        // Verificar se o Firebase está configurado corretamente
+        if (!auth) {
+            showMessage('Erro de configuração do Firebase. Verifique a chave de API.', 'error');
+            return;
+        }
+        
         await sendPasswordResetEmail(auth, email);
         
         // Registrar atividade de recuperação de senha
@@ -157,6 +175,8 @@ function getErrorMessage(errorCode) {
             return 'A senha deve ter pelo menos 6 caracteres.';
         case 'auth/invalid-email':
             return 'Email inválido.';
+        case 'auth/api-key-not-valid':
+            return 'Erro de configuração do Firebase. Verifique a chave de API.';
         default:
             return 'Ocorreu um erro. Tente novamente.';
     }

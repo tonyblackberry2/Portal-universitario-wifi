@@ -45,13 +45,13 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebas
 
 // Configuração do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyBUcqTVfqHZIHc3MShV2UzCRKanI7EWSGE",
-  authDomain: "portal-universitario-wi-fi.firebaseapp.com",
-  projectId: "portal-universitario-wi-fi",
-  storageBucket: "portal-universitario-wi-fi.appspot.com",
+  apiKey: "AIzaSyAS_VkKisuxVUhA8TlHPDYqIgEDfSCI46M",
+  authDomain: "portal-universitario-wifi.firebaseapp.com",
+  projectId: "portal-universitario-wifi",
+  storageBucket: "portal-universitario-wifi.firebasestorage.app",
   messagingSenderId: "23877160613",
   appId: "1:23877160613:web:022cac1e5024e7ec1c074c",
-  measurementId: "G-NDY1LQ18VC"
+  measurementId: "G-00EZJMJ0KB"
 };
 
 // Inicialização do Firebase
@@ -299,6 +299,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Cadastro no Firebase Auth
         try {
+            // Verificar se o Firebase está configurado corretamente
+            if (!auth) {
+                showErrorMessage('Erro de configuração do Firebase. Verifique a chave de API.');
+                return;
+            }
+            
             const userCredential = await createUserWithEmailAndPassword(auth, matricula, password);
             const user = userCredential.user;
 
@@ -343,6 +349,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const password = document.getElementById('login-password').value;
 
         try {
+            // Verificar se o Firebase está configurado corretamente
+            if (!auth) {
+                showErrorMessage('Erro de configuração do Firebase. Verifique a chave de API.');
+                return;
+            }
+            
             const userCredential = await signInWithEmailAndPassword(auth, matricula, password);
             currentUser = userCredential.user;
             
