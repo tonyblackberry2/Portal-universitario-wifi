@@ -159,4 +159,11 @@ function showMessage(message, type) {
 }
 
 // Expor função toggleUserRole globalmente
-window.toggleUserRole = toggleUserRole; 
+window.toggleUserRole = toggleUserRole;
+
+// Função para criar email fictício a partir da matrícula
+function createFakeEmail(matricula) {
+  // Remove caracteres não numéricos da matrícula
+  const cleanMatricula = matricula.replace(/\D/g, '');
+  return `${cleanMatricula}@portalwifi.edu`;
+} 

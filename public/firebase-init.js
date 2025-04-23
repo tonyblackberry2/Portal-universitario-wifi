@@ -17,7 +17,9 @@ const analytics = firebase.analytics();
 
 // Função para criar email fictício a partir da matrícula
 function createFakeEmail(matricula) {
-  return `${matricula}@universidade.com`;
+  // Remove caracteres não numéricos da matrícula
+  const cleanMatricula = matricula.replace(/\D/g, '');
+  return `${cleanMatricula}@portalwifi.edu`;
 }
 
 // Função para mostrar mensagens

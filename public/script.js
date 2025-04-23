@@ -266,6 +266,13 @@ function isValidBirthdate(birthdate) {
     return age <= 70 && new Date(birthdate) <= today;
 }
 
+// Função para criar email fictício a partir da matrícula
+function createFakeEmail(matricula) {
+  // Remove caracteres não numéricos da matrícula
+  const cleanMatricula = matricula.replace(/\D/g, '');
+  return `${cleanMatricula}@portalwifi.edu`;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadUsers();
     await loadLogs();
@@ -283,7 +290,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const secretAnswer = document.getElementById('register-secret-answer').value;
         
         // Criar e-mail fictício a partir da matrícula
-        const fakeEmail = `${matricula}@universidade.com`;
+        const fakeEmail = createFakeEmail(matricula);
 
         // Verifica se as senhas coincidem
         if (password !== confirm) {
@@ -357,7 +364,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const password = document.getElementById('login-password').value;
         
         // Criar e-mail fictício a partir da matrícula
-        const fakeEmail = `${matricula}@universidade.com`;
+        const fakeEmail = createFakeEmail(matricula);
 
         try {
             // Verificar se o Firebase está configurado corretamente

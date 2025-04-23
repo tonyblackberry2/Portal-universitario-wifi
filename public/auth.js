@@ -58,7 +58,7 @@ loginForm.addEventListener('submit', async (e) => {
     const password = loginForm.password.value;
     
     // Criar e-mail fictício a partir da matrícula
-    const fakeEmail = `${matricula}@universidade.com`;
+    const fakeEmail = createFakeEmail(matricula);
 
     try {
         // Verificar se o Firebase está configurado corretamente
@@ -108,7 +108,7 @@ registerForm.addEventListener('submit', async (e) => {
     const confirmPassword = registerForm.confirmPassword.value;
     
     // Criar e-mail fictício a partir da matrícula
-    const fakeEmail = `${matricula}@universidade.com`;
+    const fakeEmail = createFakeEmail(matricula);
 
     if (password !== confirmPassword) {
         showMessage('As senhas não coincidem!', 'error');
@@ -157,7 +157,7 @@ recoveryForm.addEventListener('submit', async (e) => {
     const matricula = recoveryForm.email.value;
     
     // Criar e-mail fictício a partir da matrícula
-    const fakeEmail = `${matricula}@universidade.com`;
+    const fakeEmail = createFakeEmail(matricula);
 
     try {
         // Verificar se o Firebase está configurado corretamente
@@ -216,4 +216,11 @@ function getErrorMessage(errorCode) {
         default:
             return 'Ocorreu um erro. Tente novamente.';
     }
+}
+
+// Função para criar email fictício a partir da matrícula
+function createFakeEmail(matricula) {
+  // Remove caracteres não numéricos da matrícula
+  const cleanMatricula = matricula.replace(/\D/g, '');
+  return `${cleanMatricula}@portalwifi.edu`;
 } 
